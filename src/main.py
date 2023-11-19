@@ -92,8 +92,14 @@ def get_atm_geojson(db: Session = Depends(get_db)):
             }
         )
         features.append(feature)
+    crs = {
+        'type': 'name',
+        'properties': {
+            'name': 'EPSG:4326',
+        },
+    }
 
-    feature_collection = FeatureCollection(features)
+    feature_collection = FeatureCollection(features, crs=crs)
     return feature_collection
 
 
