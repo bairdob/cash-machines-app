@@ -32,3 +32,20 @@ class ATMStatistics(Base):
 
     # Establish a relationship with the ATM table
     # atm = relationship("ATM", back_populates="atm_statistics")
+
+
+class Locations(Base):
+    __tablename__ = 'locations'
+
+    atm_id = Column(Integer, primary_key=True)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    address = Column(String(128))
+
+
+class Statistics(Base):
+    __tablename__ = 'statistics'
+
+    atm_id = Column(Integer, primary_key=True)
+    services_per_day = Column(Integer)
+    amount_per_day = Column(Float)
