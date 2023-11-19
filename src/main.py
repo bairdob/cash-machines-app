@@ -74,7 +74,7 @@ def get_atm_by_id(atm_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/v1/atm_geojson")
 def get_atm_geojson(db: Session = Depends(get_db)):
-    atms = db.query(ATM).all()
+    atms = db.query(ATM).limit(3).all()
     features = []
 
     for atm in atms:
@@ -121,3 +121,44 @@ async def get_resource(request: RequestBase = Depends(get_request)) -> Response:
             "Cache-Control": "max-age=604800"
         }
     )
+
+
+@app.get("/api/v1/locations/")
+def get_all_locations(db: Session = Depends(get_db)):
+    locations = db.query(Locations).all()
+    return locations
+
+
+@app.get("/api/v1/statistics/")
+def get_all_statistics(db: Session = Depends(get_db)):
+    statistics = db.query(Statistics).all()
+    return statistics
+
+
+@app.get("/api/v1/atms_list", response_model=list[StatisticsNormalized])
+def get_ranged_atms(db: Session = Depends(get_db)):
+    statistics = db.query(Statistics).all()
+    max_pr, min_pr = get_max_min_priority()
+    stats = map_statistics_to_statistics_normalized(statistics, max_pr, min_pr)
+    return stats
+
+
+@app.get("/api/v1/route")
+def get_ranged_atms(db: Session = Depends(get_db)):
+    from random import shuffle
+    l = list(range(1, 4))
+    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(l)).limit(3).all()
+    shuffle(locations)
+    new_locations = [tuple(map(float, point)) for point in locations]
+
+    feature = Feature(geometry=LineString(coordinates=new_locations))
+    crs = {
+        'type': 'name',
+        'properties': {
+            'name': 'EPSG:4326',
+        },
+    }
+    feature_collection = FeatureCollection([feature], crs=crs)
+
+    return feature_collection
+
