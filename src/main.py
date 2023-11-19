@@ -27,14 +27,6 @@ app.add_middleware(
 app.middleware("http")(LowerCaseMiddleware())
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @app.exception_handler(Exception)
 async def exception_handler(request, exc):
     error_response = {

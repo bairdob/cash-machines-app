@@ -87,3 +87,11 @@ class AsyncSQLite:
         cursor.execute(query, values)
         await asyncio.get_running_loop().run_in_executor(None, self.connection.commit)
         cursor.close()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
