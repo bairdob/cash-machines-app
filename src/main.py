@@ -1,6 +1,10 @@
 import hashlib
+import json
 import traceback
 from http.client import HTTPException
+
+import numpy as np
+from geopy import distance
 
 from fastapi import FastAPI, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -161,4 +165,17 @@ def get_ranged_atms(db: Session = Depends(get_db)):
     feature_collection = FeatureCollection([feature], crs=crs)
 
     return feature_collection
+
+
+@app.get("/api/v1/distance")
+def get_distance_matrix(db: Session = Depends(get_db)):
+    locations = db.query(Locations.latitude, Locations.longitude).all()
+    num_points = len(locations)
+    distance_matrix = np.zeros((num_points, num_points))
+    for i in range(num_points):
+        for j in range(num_points):
+            distance_matrix[i, j] = int(distance.distance(locations[i], locations[j]).km)
+
+    # print(distance_matrix)
+    return json.dumps(distance_matrix.tolist())
 
