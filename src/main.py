@@ -5,15 +5,17 @@ from http.client import HTTPException
 from fastapi import FastAPI, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
-from geojson import Feature, Point, FeatureCollection
+from geojson import Feature, Point, FeatureCollection, LineString
 from sqlalchemy.orm import Session
 
-from src.database import SessionLocal
-from src.db_models import ATMStatistics, ATM
+from src.database import get_db
+from src.db_models import ATMStatistics, ATM, Locations, Statistics
 from src.middleware import LowerCaseMiddleware
 from src.models.wmts_request_base import RequestBase
 from src.models.wmts_service import WmtsService
-from src.utils import get_request
+from src.schemas import StatisticsNormalized
+from src.utils import get_request, map_statistics_to_statistics_normalized, \
+    get_max_min_priority
 
 app = FastAPI()
 
