@@ -17,6 +17,7 @@ from src.middleware import LowerCaseMiddleware
 from src.models.wmts_request_base import RequestBase
 from src.models.wmts_service import WmtsService
 from src.schemas import StatisticsNormalized
+from src.tsp_service import TSPService
 from src.utils import get_request, map_statistics_to_statistics_normalized, \
     get_max_min_priority
 
@@ -149,13 +150,21 @@ def get_ranged_atms(db: Session = Depends(get_db)):
 
 @app.get("/api/v1/route")
 def get_ranged_atms(db: Session = Depends(get_db)):
+    distance_matrix = json.loads(get_distance_matrix(db=db))
+
+    service = TSPService(distance_matrix)
+    service.solve()
+    route_list = service.get_route()
+    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(LIMIT).all()
+
     from random import shuffle
-    l = list(range(1, 4))
-    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(l)).limit(3).all()
-    shuffle(locations)
+    # shuffle(locations)
     new_locations = [tuple(map(float, point)) for point in locations]
 
-    feature = Feature(geometry=LineString(coordinates=new_locations))
+    route_properties = {
+        'route_list': route_list
+    }
+    feature = Feature(geometry=LineString(coordinates=new_locations), properties=route_properties)
     crs = {
         'type': 'name',
         'properties': {
