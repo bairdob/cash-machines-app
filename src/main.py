@@ -1,12 +1,11 @@
 import hashlib
 import json
 import traceback
-from http.client import HTTPException
 
 import numpy as np
 from geopy import distance
 
-from fastapi import FastAPI, Depends, Query, status
+from fastapi import FastAPI, Depends, Query, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from geojson import Feature, Point, FeatureCollection, LineString
