@@ -31,6 +31,7 @@ app.add_middleware(
 )
 app.middleware("http")(LowerCaseMiddleware())
 
+LIMIT = 5
 
 @app.exception_handler(Exception)
 async def exception_handler(request, exc):
@@ -77,7 +78,7 @@ def get_atm_by_id(atm_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/v1/atm_geojson")
 def get_atm_geojson(db: Session = Depends(get_db)):
-    atms = db.query(ATM).limit(3).all()
+    atms = db.query(ATM).limit(LIMIT).all()
     features = []
 
     for atm in atms:
@@ -168,7 +169,7 @@ def get_ranged_atms(db: Session = Depends(get_db)):
 
 @app.get("/api/v1/distance")
 def get_distance_matrix(db: Session = Depends(get_db)):
-    locations = db.query(Locations.latitude, Locations.longitude).all()
+    locations = db.query(Locations.latitude, Locations.longitude).limit(LIMIT).all()
     num_points = len(locations)
     distance_matrix = np.zeros((num_points, num_points))
     for i in range(num_points):
