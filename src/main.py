@@ -183,7 +183,7 @@ def get_distance_matrix(db: Session = Depends(get_db)):
     distance_matrix = np.zeros((num_points, num_points))
     for i in range(num_points):
         for j in range(num_points):
-            distance_matrix[i, j] = int(distance.distance(locations[i], locations[j]).km)
+            distance_matrix[i, j] = distance.distance(locations[i], locations[j]).km
 
     # print(distance_matrix)
     return json.dumps(distance_matrix.tolist())
