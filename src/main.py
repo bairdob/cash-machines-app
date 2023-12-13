@@ -153,12 +153,15 @@ def get_ranged_atms(db: Session = Depends(get_db)):
     distance_matrix = json.loads(get_distance_matrix(db=db))
 
     service = TSPService(distance_matrix)
-    service.solve()
+    # service.solve()
+    service.tsp_brute_force()
     route_list = service.get_route()
     locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(LIMIT).all()
 
     from random import shuffle
     # shuffle(locations)
+    locations = [locations[atm_id-1] for atm_id in route_list]
+
     new_locations = [tuple(map(float, point)) for point in locations]
 
     route_properties = {
