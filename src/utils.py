@@ -1,8 +1,9 @@
 from typing import Tuple
 
 from sqlalchemy import select, func
+from sqlalchemy.orm import Session
 
-from src.wmts.database import engine
+from src.wmts.database import engine, SessionLocal
 from src.db_models import Statistics
 from src.schemas import StatisticsNormalized
 
@@ -36,3 +37,16 @@ def get_max_min_priority() -> Tuple[float, float]:
         min_priority = connection.execute(query_min_pr).fetchone()
 
     return max_priority[0], min_priority[0]
+
+
+def get_db() -> Session:
+    """
+    Менеджер контекста для создания и управления сеансом базы данных.
+
+    :return: сеанс базы данных
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
