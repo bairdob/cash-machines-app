@@ -1,8 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Date, ForeignKey
 
-from sqlalchemy.orm import relationship
-
-from src.database import Base
+from src.wmts.database import Base
 
 
 class ATM(Base):

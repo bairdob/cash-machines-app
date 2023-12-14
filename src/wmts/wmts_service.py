@@ -3,10 +3,10 @@ import sqlite3
 from fastapi import status
 from fastapi.exceptions import HTTPException
 
-from src.database import AsyncSQLite
-from src.models.mbtiles import MBTiles
-from src.models.ogc_web_service import OGCWebService
-from src.utils import get_first_file_in_folder
+from src.wmts.database import AsyncSQLite
+from src.wmts.mbtiles import MBTiles
+from src.wmts.models.ogc_web_service import OGCWebService
+from src.wmts.utils import get_first_file_in_folder
 
 
 class WmtsService(OGCWebService):

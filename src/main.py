@@ -1,4 +1,3 @@
-import hashlib
 import json
 import traceback
 
@@ -7,18 +6,18 @@ from geopy import distance
 
 from fastapi import FastAPI, Depends, Query, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import JSONResponse
 from geojson import Feature, Point, FeatureCollection, LineString
 from sqlalchemy.orm import Session
 
-from src.database import get_db
+from src.wmts.router import router as wmts_router
+
+from src.wmts.database import get_db
 from src.db_models import ATMStatistics, ATM, Locations, Statistics
 from src.middleware import LowerCaseMiddleware
-from src.models.wmts_request_base import RequestBase
-from src.models.wmts_service import WmtsService
 from src.schemas import StatisticsNormalized
 from src.tsp_service import TSPService
-from src.utils import get_request, map_statistics_to_statistics_normalized, \
+from src.utils import map_statistics_to_statistics_normalized, \
     get_max_min_priority
 
 app = FastAPI()
@@ -31,6 +30,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.middleware("http")(LowerCaseMiddleware())
+app.include_router(wmts_router, prefix="", tags=["Wmts"])
+
 
 LIMIT = 5
 
@@ -108,26 +109,6 @@ def get_atm_geojson(db: Session = Depends(get_db)):
     return feature_collection
 
 
-@app.get("/wmts", response_class=Response)
-async def get_resource(request: RequestBase = Depends(get_request)) -> Response:
-    """Возвращает ответ по типу запроса Wmts сервиса."""
-    tile = await WmtsService.get_tile(
-        layer=request.tilerequestparameters.layer,
-        tilematrix=int(request.tileattributes.tileposition.tilematrix),
-        tilerow=request.tileattributes.tileposition.tilerow,
-        tilecol=request.tileattributes.tileposition.tilecol
-    )
-
-    return Response(
-        content=tile,
-        media_type=request.tileattributes.format,
-        headers={
-            'ETag': str(hashlib.sha256(tile).hexdigest()),
-            "Cache-Control": "max-age=604800"
-        }
-    )
-
-
 @app.get("/api/v1/locations/")
 def get_all_locations(db: Session = Depends(get_db)):
     locations = db.query(Locations).all()
@@ -158,8 +139,6 @@ def get_ranged_atms(db: Session = Depends(get_db)):
     route_list = service.get_route()
     locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(LIMIT).all()
 
-    from random import shuffle
-    # shuffle(locations)
     locations = [locations[atm_id-1] for atm_id in route_list]
 
     new_locations = [tuple(map(float, point)) for point in locations]

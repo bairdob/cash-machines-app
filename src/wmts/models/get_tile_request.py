@@ -1,6 +1,6 @@
 from pydantic import BaseModel, field_validator
 
-from src.models.wmts_request_base import RequestBase
+from src.wmts.models.wmts_request_base import RequestBase
 
 
 class TileRequestParameters(BaseModel):
