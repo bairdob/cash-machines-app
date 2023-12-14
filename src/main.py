@@ -2,23 +2,18 @@ import json
 import traceback
 
 import numpy as np
-from geopy import distance
-
-from fastapi import FastAPI, Depends, Query, status, HTTPException
+from fastapi import FastAPI, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from geojson import Feature, Point, FeatureCollection, LineString
+from geopy import distance
 from sqlalchemy.orm import Session
 
-from src.wmts.router import router as wmts_router
-
-from src.wmts.database import get_db
-from src.db_models import ATMStatistics, ATM, Locations, Statistics
+from src.db_models import Locations, Statistics
 from src.middleware import LowerCaseMiddleware
-from src.schemas import StatisticsNormalized
 from src.tsp_service import TSPService
-from src.utils import map_statistics_to_statistics_normalized, \
-    get_max_min_priority
+from src.utils import get_db
+from src.wmts.router import router as wmts_router
 
 app = FastAPI()
 
@@ -32,11 +27,19 @@ app.add_middleware(
 app.middleware("http")(LowerCaseMiddleware())
 app.include_router(wmts_router, prefix="", tags=["Wmts"])
 
+LIMIT = 10
+CRS_EPSG = 'EPSG:4326'
 
-LIMIT = 5
 
 @app.exception_handler(Exception)
-async def exception_handler(request, exc):
+async def exception_handler(request: Request, exc: Exception):
+    """
+    Обработчик исключений в человекочитаемый вид.
+
+    :param request: Объект запроса
+    :param exc: объект исключений
+    :return: словарь с данными исключения
+    """
     error_response = {
         'message': str(exc),
         'traceback': traceback.format_exc(),
@@ -50,107 +53,102 @@ async def exception_handler(request, exc):
 
 @app.get("/ping")
 async def ping():
+    """Возвращает ответ на тестовый запрос."""
     return 'pong'
 
 
-# Route to create ATM statistics
-@app.get("/api/v1/atm_statistics/")
-async def get_atm_statistics(atm_id: int = Query(..., title="ATM ID"), db: Session = Depends(get_db)):
-    statistics = db.query(ATMStatistics).filter(ATMStatistics.atm_id == atm_id).first()
-    if statistics is None:
-        raise HTTPException(status_code=404, detail="Statistics not found")
-    return statistics
-
-
-# Route to get a list of all ATMs
-@app.get("/api/v1/atms/")
-def get_all_atms(db: Session = Depends(get_db)):
-    atms = db.query(ATM).all()
-    return atms
-
-
-# Route to get details of a specific ATM by ID
-@app.get("/api/v1/atms/{atm_id}")
-def get_atm_by_id(atm_id: int, db: Session = Depends(get_db)):
-    atm = db.query(ATM).filter(ATM.atm_id == atm_id).first()
-    if atm is None:
-        raise HTTPException(status_code=404, detail="ATM not found")
-    return atm
-
-
 @app.get("/api/v1/atm_geojson")
-def get_atm_geojson(db: Session = Depends(get_db)):
-    atms = db.query(ATM).limit(LIMIT).all()
-    features = []
+def get_atms_geojson(db: Session = Depends(get_db)) -> dict:
+    """
+    Получаем GeoJSON с расположением банкоматов.
 
-    for atm in atms:
-        feature = Feature(
-            geometry=Point((atm.longitude, atm.latitude)),
+    :param db: сессия базы данных
+    :return: словарь GeoJSON
+    """
+    # получаем записи из таблицы Locations
+    locations = db.query(Locations).limit(LIMIT).all()
+
+    # собираем фичи для GeoJSON
+    features = [
+        Feature(
+            geometry=Point((location.longitude, location.latitude)),
             properties={
-                "atm_id": atm.atm_id,
-                "location_name": atm.location_name,
-                "address": atm.address,
-                "city": atm.city,
-                "state": atm.state,
-                "country": atm.country,
-                "last_service_date": str(atm.last_service_date),
-                "is_operational": atm.is_operational
+                "atm_id": location.atm_id,
+                "address": location.address,
             }
         )
-        features.append(feature)
+        for location in locations
+    ]
+
+    # устанавливаем систему координат для openlayers
     crs = {
         'type': 'name',
         'properties': {
-            'name': 'EPSG:4326',
+            'name': CRS_EPSG,
         },
     }
-
     feature_collection = FeatureCollection(features, crs=crs)
+
     return feature_collection
 
 
 @app.get("/api/v1/locations/")
-def get_all_locations(db: Session = Depends(get_db)):
+def get_all_locations(db: Session = Depends(get_db), response_model=list[Locations]):
+    """
+    Получаем записи Locations.
+
+    :param db: сессия базы данных
+    :param response_model: список типа записей таблицы
+    :return: список записей таблицы
+    """
     locations = db.query(Locations).all()
     return locations
 
 
 @app.get("/api/v1/statistics/")
-def get_all_statistics(db: Session = Depends(get_db)):
+def get_all_statistics(db: Session = Depends(get_db), response_model=list[Statistics]):
+    """
+    Получаем записи Statistics.
+
+    :param db: сессия базы данных
+    :param response_model: список типа записей таблицы
+    :return: список записей таблицы
+    """
     statistics = db.query(Statistics).all()
     return statistics
 
 
-@app.get("/api/v1/atms_list", response_model=list[StatisticsNormalized])
-def get_ranged_atms(db: Session = Depends(get_db)):
-    statistics = db.query(Statistics).all()
-    max_pr, min_pr = get_max_min_priority()
-    stats = map_statistics_to_statistics_normalized(statistics, max_pr, min_pr)
-    return stats
-
-
 @app.get("/api/v1/route")
-def get_ranged_atms(db: Session = Depends(get_db)):
+def get_route(db: Session = Depends(get_db)):
+    """
+    Получаем GeoJSON оптимального пути.
+
+    :param db: сессия базы данных
+    :return: словарь GeoJSON
+    """
+    # получаем матрицу расстояний
     distance_matrix = json.loads(get_distance_matrix(db=db))
 
+    # находим оптимальный маршрут
     service = TSPService(distance_matrix)
-    # service.solve()
     service.tsp_brute_force()
-    route_list = service.get_route()
-    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(LIMIT).all()
+    route_list = service.get_route()  # type: list
 
-    locations = [locations[atm_id-1] for atm_id in route_list]
+    # получаем список координат маршрута
+    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(
+        LIMIT).all()
+    locations = [locations[atm_id - 1] for atm_id in route_list]
 
-    new_locations = [tuple(map(float, point)) for point in locations]
-
-    route_properties = {
-        'route_list': route_list
-    }
-    feature = Feature(geometry=LineString(coordinates=new_locations), properties=route_properties)
+    # собираем фичи для GeoJSON
+    feature = Feature(
+        geometry=LineString(coordinates=[tuple(map(float, point)) for point in locations]),
+        properties={'route_list': route_list}
+    )
+    # устанавливаем систему координат для openlayers
     crs = {
         'type': 'name',
         'properties': {
-            'name': 'EPSG:4326',
+            'name': CRS_EPSG,
         },
     }
     feature_collection = FeatureCollection([feature], crs=crs)
@@ -160,13 +158,22 @@ def get_ranged_atms(db: Session = Depends(get_db)):
 
 @app.get("/api/v1/distance")
 def get_distance_matrix(db: Session = Depends(get_db)):
+    """
+    Возвращает матрицу расстояний между банкоматами.
+
+    :param db: сессия базы данных
+    :return: матрицу расстояний
+    """
+    # получаем список формата (широта, долгота) из таблицы Locations
     locations = db.query(Locations.latitude, Locations.longitude).limit(LIMIT).all()
     num_points = len(locations)
+
+    # создаем матрицу NxN расстояний, где N - количество банкоматов
     distance_matrix = np.zeros((num_points, num_points))
+
+    # считаем расстояние между банкоматами как евклидово расстояние между точками
     for i in range(num_points):
         for j in range(num_points):
             distance_matrix[i, j] = distance.distance(locations[i], locations[j]).km
 
-    # print(distance_matrix)
     return json.dumps(distance_matrix.tolist())
-
