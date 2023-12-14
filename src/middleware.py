@@ -1,7 +1,9 @@
-from starlette.requests import Request
+from fastapi import Request
 
 
 class LowerCaseMiddleware:
+    """Мидлварь для приведения к нижнему регистру запросов."""
+
     def __init__(self) -> None:
         self.DECODE_FORMAT = "latin-1"
 
