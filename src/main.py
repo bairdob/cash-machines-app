@@ -135,14 +135,19 @@ def get_route(db: Session = Depends(get_db)):
     route_list = service.get_route()  # type: list
 
     # получаем список координат маршрута
-    locations = db.query(Locations.longitude, Locations.latitude).filter(Locations.atm_id.in_(route_list)).limit(
+    locations = db.query(Locations).filter(Locations.atm_id.in_(route_list)).limit(
         LIMIT).all()
-    locations = [locations[atm_id - 1] for atm_id in route_list]
+    points = [(float(location.longitude), float(location.latitude)) for location in locations]
+    points = [points[atm_id - 1] for atm_id in route_list]
+
+    # получаем данные о банкоматах
+    atms = [{location.atm_id: location.address} for location in locations]
+    atms = [atms[atm_id - 1] for atm_id in route_list]
 
     # собираем фичи для GeoJSON
     feature = Feature(
-        geometry=LineString(coordinates=[tuple(map(float, point)) for point in locations]),
-        properties={'route_list': route_list}
+        geometry=LineString(coordinates=points),
+        properties={'route_list': atms}
     )
     # устанавливаем систему координат для openlayers
     crs = {
