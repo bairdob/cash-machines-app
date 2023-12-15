@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 
 from src.utils import Base
 
@@ -15,6 +15,8 @@ class Locations(Base):
 class Statistics(Base):
     __tablename__ = 'statistics'
 
-    atm_id = Column(Integer, primary_key=True)
+    statistics_id = Column(Integer, primary_key=True)
+    atm_id = Column(Integer, ForeignKey('locations.atm_id'))
     services_per_day = Column(Integer)
     amount_per_day = Column(Float)
+    status = Column(String(128))
