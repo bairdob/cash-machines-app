@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.4 (Homebrew)
+-- Dumped from database version 15.5 (Homebrew)
 -- Dumped by pg_dump version 15.5 (Homebrew)
 
--- Started on 2023-12-15 09:09:54 MSK
+-- Started on 2023-12-29 05:17:11 MSK
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,13 +21,11 @@ SET row_security = off;
 DROP DATABASE barbie_land;
 --
 -- TOC entry 3624 (class 1262 OID 24968)
--- Name: barbie_land; Type: DATABASE; Schema: -; Owner: bair
+-- Name: barbie_land; Type: DATABASE; Schema: -; Owner: -
 --
 
 CREATE DATABASE barbie_land WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'C';
 
-
-ALTER DATABASE barbie_land OWNER TO bair;
 
 \connect barbie_land
 
@@ -44,18 +42,16 @@ SET row_security = off;
 
 --
 -- TOC entry 4 (class 2615 OID 2200)
--- Name: public; Type: SCHEMA; Schema: -; Owner: pg_database_owner
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 
 CREATE SCHEMA public;
 
 
-ALTER SCHEMA public OWNER TO pg_database_owner;
-
 --
 -- TOC entry 3625 (class 0 OID 0)
 -- Dependencies: 4
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON SCHEMA public IS 'standard public schema';
@@ -67,7 +63,7 @@ SET default_table_access_method = heap;
 
 --
 -- TOC entry 215 (class 1259 OID 42274)
--- Name: locations; Type: TABLE; Schema: public; Owner: bair
+-- Name: locations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.locations (
@@ -78,11 +74,9 @@ CREATE TABLE public.locations (
 );
 
 
-ALTER TABLE public.locations OWNER TO bair;
-
 --
 -- TOC entry 214 (class 1259 OID 42273)
--- Name: locations1_atm_id_seq; Type: SEQUENCE; Schema: public; Owner: bair
+-- Name: locations1_atm_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.locations1_atm_id_seq
@@ -94,12 +88,10 @@ CREATE SEQUENCE public.locations1_atm_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.locations1_atm_id_seq OWNER TO bair;
-
 --
 -- TOC entry 3626 (class 0 OID 0)
 -- Dependencies: 214
--- Name: locations1_atm_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bair
+-- Name: locations1_atm_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.locations1_atm_id_seq OWNED BY public.locations.atm_id;
@@ -107,7 +99,7 @@ ALTER SEQUENCE public.locations1_atm_id_seq OWNED BY public.locations.atm_id;
 
 --
 -- TOC entry 217 (class 1259 OID 42281)
--- Name: statistics; Type: TABLE; Schema: public; Owner: bair
+-- Name: statistics; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.statistics (
@@ -119,11 +111,9 @@ CREATE TABLE public.statistics (
 );
 
 
-ALTER TABLE public.statistics OWNER TO bair;
-
 --
 -- TOC entry 216 (class 1259 OID 42280)
--- Name: statistics1_statistics_id_seq; Type: SEQUENCE; Schema: public; Owner: bair
+-- Name: statistics1_statistics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.statistics1_statistics_id_seq
@@ -135,12 +125,10 @@ CREATE SEQUENCE public.statistics1_statistics_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.statistics1_statistics_id_seq OWNER TO bair;
-
 --
 -- TOC entry 3627 (class 0 OID 0)
 -- Dependencies: 216
--- Name: statistics1_statistics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bair
+-- Name: statistics1_statistics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.statistics1_statistics_id_seq OWNED BY public.statistics.statistics_id;
@@ -148,7 +136,7 @@ ALTER SEQUENCE public.statistics1_statistics_id_seq OWNED BY public.statistics.s
 
 --
 -- TOC entry 3466 (class 2604 OID 42277)
--- Name: locations atm_id; Type: DEFAULT; Schema: public; Owner: bair
+-- Name: locations atm_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.locations ALTER COLUMN atm_id SET DEFAULT nextval('public.locations1_atm_id_seq'::regclass);
@@ -156,7 +144,7 @@ ALTER TABLE ONLY public.locations ALTER COLUMN atm_id SET DEFAULT nextval('publi
 
 --
 -- TOC entry 3467 (class 2604 OID 42284)
--- Name: statistics statistics_id; Type: DEFAULT; Schema: public; Owner: bair
+-- Name: statistics statistics_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.statistics ALTER COLUMN statistics_id SET DEFAULT nextval('public.statistics1_statistics_id_seq'::regclass);
@@ -165,7 +153,7 @@ ALTER TABLE ONLY public.statistics ALTER COLUMN statistics_id SET DEFAULT nextva
 --
 -- TOC entry 3616 (class 0 OID 42274)
 -- Dependencies: 215
--- Data for Name: locations; Type: TABLE DATA; Schema: public; Owner: bair
+-- Data for Name: locations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 INSERT INTO public.locations VALUES (1, 55.7558, 37.6176, 'Tverskaya Street 12, Moscow');
@@ -188,7 +176,7 @@ INSERT INTO public.locations VALUES (15, 55.781, 37.6209, 'Sokolniki Park, 1-Y S
 --
 -- TOC entry 3618 (class 0 OID 42281)
 -- Dependencies: 217
--- Data for Name: statistics; Type: TABLE DATA; Schema: public; Owner: bair
+-- Data for Name: statistics; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 INSERT INTO public.statistics VALUES (1, 1, 50, 1500.25, 'online');
@@ -206,7 +194,7 @@ INSERT INTO public.statistics VALUES (9, 10, 25, 1650, 'online');
 --
 -- TOC entry 3628 (class 0 OID 0)
 -- Dependencies: 214
--- Name: locations1_atm_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bair
+-- Name: locations1_atm_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.locations1_atm_id_seq', 1, false);
@@ -215,7 +203,7 @@ SELECT pg_catalog.setval('public.locations1_atm_id_seq', 1, false);
 --
 -- TOC entry 3629 (class 0 OID 0)
 -- Dependencies: 216
--- Name: statistics1_statistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bair
+-- Name: statistics1_statistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.statistics1_statistics_id_seq', 1, false);
@@ -223,7 +211,7 @@ SELECT pg_catalog.setval('public.statistics1_statistics_id_seq', 1, false);
 
 --
 -- TOC entry 3469 (class 2606 OID 42279)
--- Name: locations locations1_pkey; Type: CONSTRAINT; Schema: public; Owner: bair
+-- Name: locations locations1_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.locations
@@ -232,7 +220,7 @@ ALTER TABLE ONLY public.locations
 
 --
 -- TOC entry 3471 (class 2606 OID 42286)
--- Name: statistics statistics1_pkey; Type: CONSTRAINT; Schema: public; Owner: bair
+-- Name: statistics statistics1_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.statistics
@@ -241,14 +229,14 @@ ALTER TABLE ONLY public.statistics
 
 --
 -- TOC entry 3472 (class 2606 OID 42287)
--- Name: statistics statistics1_atm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: bair
+-- Name: statistics statistics1_atm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.statistics
     ADD CONSTRAINT statistics1_atm_id_fkey FOREIGN KEY (atm_id) REFERENCES public.locations(atm_id);
 
 
--- Completed on 2023-12-15 09:09:58 MSK
+-- Completed on 2023-12-29 05:17:12 MSK
 
 --
 -- PostgreSQL database dump complete
